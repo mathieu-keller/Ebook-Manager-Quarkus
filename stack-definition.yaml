@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15.1@sha256:f4cd32e7a418d9c9ba043e7d561243388202b654c740bcc85ca40b41d9fb4f1e
+    image: postgres:15.1@sha256:308bc684afd049dfe1f57bb91eb026f1ecd2f969fc3af80b0c3a5f8b0bd0b86b
     restart: on-failure
     environment:
       POSTGRES_PASSWORD: "{{db_password}}"
