@@ -37,6 +37,25 @@ jobs:
       - name: lint
         working-directory: ./src/frontend
         run: npm run lint
+  test_backend:
+    name: test backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Run tests
+        run: mvn test
   frontend_build:
     name: build frontend
     needs: [ yarn, lint ]
@@ -61,7 +80,7 @@ jobs:
   backend_build:
     name: build backend
     runs-on: ubuntu-latest
-    needs: [ frontend_build ]
+    needs: [ frontend_build, test_backend ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -88,7 +107,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build dev with Maven
-        run: mvn -B verify -Dquarkus.container-image.tag=${{ github.sha }} -Dquarkus.container-image.group=${{ secrets.DOCKER_USER }} -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
+        run: mvn package -DskipTests -Pnative -Dquarkus.native.container-build=true -Dquarkus.container-image.build=true -Dquarkus.container-image.tag=${{ github.sha }} -Dquarkus.container-image.group=${{ secrets.DOCKER_USER }} -Dquarkus.container-image.push=true
       - uses: geekyeggo/delete-artifact@v2
         with:
           name: frontend
